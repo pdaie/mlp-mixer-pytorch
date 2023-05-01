@@ -1,0 +1,8 @@
+# download dataset
+download: False
+
+# train/val/test set
+path: data/dog_cat
+train: train
+val: val
+test: 
