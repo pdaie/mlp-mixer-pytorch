@@ -40,3 +40,4 @@ def save_state_dict(model, name):
     
     save_model_path = os.path.join(save_exp_dir, f'{name}.pt')
     torch.save(model.state_dict(), save_model_path)
+    print(f'- Model saved to {save_exp_dir}')

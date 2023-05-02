@@ -4,9 +4,6 @@ from torchvision import datasets, transforms
 
 
 def create_dataloaders(dir, image_size, batch_size, num_workers):
-    if isinstance(image_size, int):
-        image_size = [image_size, image_size]
-
     transform = transforms.Compose([
         transforms.Resize((image_size[0], image_size[1])),
         transforms.ToTensor()

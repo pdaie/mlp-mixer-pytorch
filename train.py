@@ -9,16 +9,20 @@ from model.mlp_mixer import MLPMixer
 from utils.engine import train_step, val_step
 from utils.dataloaders import create_dataloaders
 from utils.save_model import save_entire_model
+from utils.download import download_datasetcl
 
 
 DATA_CONFIG = yaml.load(open('data/config.yaml', 'r'), Loader=yaml.loader.SafeLoader)
 
 
 def train(opt):
-    if opt.device is None:
+    if opt.device == None:
         device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     else:
         device = torch.device(opt.device)
+        
+    if isinstance(opt.image_size, int):
+        opt.image_size = [opt.image_size, opt.image_size]
         
     train_dir = os.path.join(DATA_CONFIG['path'], DATA_CONFIG['train'])
     train_dataloader, train_dataset = create_dataloaders(
@@ -33,16 +37,30 @@ def train(opt):
         val_dataloader, _ = create_dataloaders(
             dir=var_dir,
             image_size=opt.image_size,
-            batch_size=opt.batch_size
+            batch_size=opt.batch_size,
+            num_workers=opt.num_workers if opt.num_workers != -1 else os.cpu_count()
         )
     
-    image_size = opt.image_size
-    if isinstance(image_size, int):
-        image_size = [image_size, image_size]
-        
+    print('[!] Trainning model')
+    print('- Trainning config: ')
+    print(f'\t - Epochs: {opt.epochs}')
+    print(f'\t - Learning rate: {opt.learning_rate}')
+    print(f'\t - Batch size: {opt.batch_size}')
+    print(f'\t - Device: {device}')
+    print()
+    print('- Model config: ')
+    print(f'\t - Num classes: {len(train_dataset.classes)}')
+    print(f'\t - Image size: ({opt.image_size[0]}, {opt.image_size[1]})')
+    print(f'\t - Patch size: {opt.patch_size}')
+    print(f'\t - Num MLP blocks: {opt.num_mlp_blocks}')
+    print(f'\t - Projection dim: {opt.projection_dim}')
+    print(f'\t - Token mixing dim: {opt.token_mixing_dim}')
+    print(f'\t - Channel mixing dim: {opt.channel_mixing_dim}')
+    print()
+    
     model = MLPMixer(
         num_classes=len(train_dataset.classes),
-        image_size=image_size,
+        image_size=opt.image_size,
         patch_size=opt.patch_size,
         num_mlp_blocks=opt.num_mlp_blocks,
         projection_dim=opt.projection_dim, 
@@ -53,10 +71,11 @@ def train(opt):
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.AdamW(model.parameters(), lr=opt.learning_rate)
     
+    print('- Trainning: ')
     for epoch in range(opt.epochs):
         train_loss, train_acc = train_step(model, train_dataloader, optimizer, criterion, device)
         
-        if DATA_CONFIG['val'] is not None:
+        if DATA_CONFIG['val'] != None:
             val_loss, val_acc = val_step(model, val_dataloader, criterion, device)
             print(f'\t- Epoch: {epoch+1}', end=' ')
             print(f'- loss: {train_loss:.4f} - acc: {train_acc:.4f}', end=' ')
@@ -70,11 +89,8 @@ def train(opt):
     
     
 def main(opt):
-    try:
-        if DATA_CONFIG['download']:
-            download_dataset()
-    except:
-        pass
+    if DATA_CONFIG.get('download', False):
+        download_dataset()
 
     train(opt)
     

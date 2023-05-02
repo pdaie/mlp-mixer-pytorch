@@ -1,5 +1,5 @@
 # download dataset
-download: False
+download: True
 
 # train/val/test set
 path: data/dog_cat
