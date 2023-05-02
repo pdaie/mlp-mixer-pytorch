@@ -66,7 +66,13 @@ results = logis.argmax(dim=1)
 <details>
 <summary>Training</summary>
 
-The commands below download dog cat dataset automatically and train on it. If you want to train with your dataset, you must to change infomation on file config:
+The commands below download and train dog cat dataset automatically. 
+
+```bash
+python train.py --epochs 300 --learning-rate 1e3 --batch-size 128 --image-size 300 --patch-size 100 --num-mlp-blocks 8 --projection-dim 512 --token-mixing-dim 2048 --channel-mixing-dim 256 --num-workers 1 --device cuda:0                                                      
+```
+
+If you want to train with your dataset, you must to change information on file config:
 - Set download: False or delete this row.
 - Setup dataset follow this structure:
 
@@ -94,11 +100,6 @@ val/
 ...class_c/
 ......c_image_1.jpg
 ......c_image_2.jpg
-```
-
-```bash
-python train.py --epochs 300 --learning-rate 1e3 --batch-size 128 --image-size 300 --patch-size 100 --num-mlp-blocks 8 --projection-dim 512 --token-mixing-dim 2048 --channel-mixing-dim 256 --num-workers 1 --device cuda:0
-                                                               
 ```
 
 </details>
