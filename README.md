@@ -3,7 +3,7 @@
 This repo focus implement the paper with Pytorch [MLP-Mixer: An all-MLP Architecture for Vision](https://arxiv.org/pdf/2105.01601.pdf).
 
 <a align="center" href="https://arxiv.org/pdf/2105.01601.pdf" target="_blank">
-      <img width="100%" src=""></a>
+      <img width="100%" src="https://raw.githubusercontent.com/pdaie/mlp-mixer-pytorch/master/examples/mlp_mixer.png"></a>
 
 ## <div align="center">Documentation</div>
 
