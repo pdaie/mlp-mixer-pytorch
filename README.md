@@ -23,6 +23,8 @@ pip install -r requirements.txt  # install
 <details>
 <summary>Inference</summary>
 
+After training model, the parameters will be save on runs/exp_*/last.pt. We can load it for inference.
+
 ```python
 import torch
 from PIL import Image
