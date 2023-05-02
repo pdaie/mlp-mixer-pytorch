@@ -61,6 +61,8 @@ logis = model(image.unsqueeze(0))
 results = logis.argmax(dim=1)
 ```
 
+</details>   
+   
 <details>
 <summary>Training</summary>
 
