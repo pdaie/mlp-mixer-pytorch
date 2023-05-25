@@ -10,12 +10,10 @@ This repo focus implement the paper with Pytorch [MLP-Mixer: An all-MLP Architec
 <details open>
 <summary>Install</summary>
 
-Clone repo and install [requirements.txt](https://github.com/ultralytics/yolov5/blob/master/requirements.txt)
-
 ```bash
 git clone https://github.com/pdaie/mlp-mixer-pytorch  # clone
 cd mlp-mixer-pytorch
-pip install -r requirements.txt  # install
+pip install -r requirements.txt  # install requirements
 ```
 
 </details>
