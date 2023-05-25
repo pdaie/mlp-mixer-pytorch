@@ -42,7 +42,7 @@ model = MLPMixer(
   channel_mixing_dim=256
 )
 
-model.load_state_dict(torch.load('runs/exp_*/last.pt))
+model.load_state_dict(torch.load('runs/exp_*/last.pt'))
 
 # Image
 image_path = "name_image.jpg"
@@ -68,40 +68,37 @@ results = logis.argmax(dim=1)
 <details>
 <summary>Training</summary>
 
-The commands below download and train dog cat dataset automatically. 
+You have to setup your data follow structure below:
+
+```
+data/
+...train/
+......class_a/
+.........a_image_1.jpg
+.........a_image_2.jpg
+......class_b/
+.........b_image_1.jpg
+.........b_image_2.jpg
+......class_c/
+.........c_image_1.jpg
+.........c_image_2.jpg
+...val/
+......class_a/
+.........a_image_1.jpg
+.........a_image_2.jpg
+......class_b/
+.........b_image_1.jpg
+.........b_image_2.jpg
+......class_c/
+.........c_image_1.jpg
+.........c_image_2.jpg
+model/
+utils/
+train.py
+```
 
 ```bash
 python train.py --epochs 300 --learning-rate 1e3 --batch-size 128 --image-size 300 --patch-size 100 --num-mlp-blocks 8 --projection-dim 512 --token-mixing-dim 2048 --channel-mixing-dim 256 --num-workers 1 --device cuda:0                                                      
-```
-
-If you want to train with your dataset, you must to change information on file config:
-- Set download: False or delete this row.
-- Setup dataset follow this structure:
-
-```
-train/
-...class_a/
-......a_image_1.jpg
-......a_image_2.jpg
-...class_b/
-......b_image_1.jpg
-......b_image_2.jpg
-...class_c/
-......c_image_1.jpg
-......c_image_2.jpg
-```
-
-```
-val/
-...class_a/
-......a_image_1.jpg
-......a_image_2.jpg
-...class_b/
-......b_image_1.jpg
-......b_image_2.jpg
-...class_c/
-......c_image_1.jpg
-......c_image_2.jpg
 ```
 
 </details>

@@ -1,101 +1,119 @@
 import os
-import yaml
 import argparse
 
 import torch
 import torch.nn as nn
 
 from model.mlp_mixer import MLPMixer
-from utils.engine import train_step, val_step
-from utils.dataloaders import create_dataloaders
+from utils.dataloader import create_dataloader
 from utils.save_model import save_entire_model
-from utils.download import download_datasetcl
 
-
-DATA_CONFIG = yaml.load(open('data/config.yaml', 'r'), Loader=yaml.loader.SafeLoader)
-
-
-def train(opt):
-    if opt.device == None:
+def train(args):
+    if args.device == None:
         device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     else:
-        device = torch.device(opt.device)
+        device = torch.device(args.device)
         
-    if isinstance(opt.image_size, int):
-        opt.image_size = [opt.image_size, opt.image_size]
+    if isinstance(args.image_size, int):
+        args.image_size = [args.image_size, args.image_size]
         
-    train_dir = os.path.join(DATA_CONFIG['path'], DATA_CONFIG['train'])
-    train_dataloader, train_dataset = create_dataloaders(
-        dir=train_dir,
-        image_size=opt.image_size,
-        batch_size=opt.batch_size,
-        num_workers=opt.num_workers if opt.num_workers != -1 else os.cpu_count()
+    train_data_dir = os.path.join('data', 'train')
+    train_dataloader, train_dataset = create_dataloader(
+        dir=train_data_dir,
+        image_size=args.image_size,
+        batch_size=args.batch_size,
+        num_workers=args.num_workers if args.num_workers != -1 else os.cpu_count()
     )
     
-    if DATA_CONFIG['val'] is not None:
-        var_dir = os.path.join(DATA_CONFIG['path'], DATA_CONFIG['val'])
-        val_dataloader, _ = create_dataloaders(
-            dir=var_dir,
-            image_size=opt.image_size,
-            batch_size=opt.batch_size,
-            num_workers=opt.num_workers if opt.num_workers != -1 else os.cpu_count()
+    val_data_dir = os.path.join('data', 'val') if os.path.exists(os.path.join('data', 'val')) else None
+    if val_data_dir is not None:
+        val_dataloader, _ = create_dataloader(
+            dir=val_data_dir,
+            image_size=args.image_size,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers if args.num_workers != -1 else os.cpu_count()
         )
     
     print('[!] Trainning model')
     print('- Trainning config: ')
-    print(f'\t - Epochs: {opt.epochs}')
-    print(f'\t - Learning rate: {opt.learning_rate}')
-    print(f'\t - Batch size: {opt.batch_size}')
+    print(f'\t - Epochs: {args.epochs}')
+    print(f'\t - Learning rate: {args.learning_rate}')
+    print(f'\t - Batch size: {args.batch_size}')
     print(f'\t - Device: {device}')
     print()
     print('- Model config: ')
     print(f'\t - Num classes: {len(train_dataset.classes)}')
-    print(f'\t - Image size: ({opt.image_size[0]}, {opt.image_size[1]})')
-    print(f'\t - Patch size: {opt.patch_size}')
-    print(f'\t - Num MLP blocks: {opt.num_mlp_blocks}')
-    print(f'\t - Projection dim: {opt.projection_dim}')
-    print(f'\t - Token mixing dim: {opt.token_mixing_dim}')
-    print(f'\t - Channel mixing dim: {opt.channel_mixing_dim}')
+    print(f'\t - Image size: ({args.image_size[0]}, {args.image_size[1]})')
+    print(f'\t - Patch size: {args.patch_size}')
+    print(f'\t - Num MLP blocks: {args.num_mlp_blocks}')
+    print(f'\t - Projection dim: {args.projection_dim}')
+    print(f'\t - Token mixing dim: {args.token_mixing_dim}')
+    print(f'\t - Channel mixing dim: {args.channel_mixing_dim}')
     print()
     
     model = MLPMixer(
         num_classes=len(train_dataset.classes),
-        image_size=opt.image_size,
-        patch_size=opt.patch_size,
-        num_mlp_blocks=opt.num_mlp_blocks,
-        projection_dim=opt.projection_dim, 
-        token_mixing_dim=opt.token_mixing_dim,
-        channel_mixing_dim=opt.channel_mixing_dim
+        image_size=args.image_size,
+        patch_size=args.patch_size,
+        num_mlp_blocks=args.num_mlp_blocks,
+        projection_dim=args.projection_dim, 
+        token_mixing_dim=args.token_mixing_dim,
+        channel_mixing_dim=args.channel_mixing_dim
     ).to(device)
             
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.AdamW(model.parameters(), lr=opt.learning_rate)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=args.learning_rate)
     
     print('- Trainning: ')
-    for epoch in range(opt.epochs):
-        train_loss, train_acc = train_step(model, train_dataloader, optimizer, criterion, device)
-        
-        if DATA_CONFIG['val'] != None:
-            val_loss, val_acc = val_step(model, val_dataloader, criterion, device)
-            print(f'\t- Epoch: {epoch+1}', end=' ')
-            print(f'- loss: {train_loss:.4f} - acc: {train_acc:.4f}', end=' ')
-            print(f'- val_loss: {val_loss:.4f} - val_acc: {val_acc:.4f}')
+    for epoch in range(args.epochs):
+        model.train()
+        train_loss = 0
+        train_acc = 0
+        for images, labels in train_dataloader:
+            images = images.to(device)
+            labels = labels.to(device)
+            
+            logits = model(images)
+            loss = criterion(logits, labels)
+            
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+            train_loss += loss.item()
+            train_acc += (torch.sum(torch.argmax(logits, dim=1) == labels) / len(labels)).item()
+
+        train_loss /= len(train_dataloader)
+        train_acc /= len(train_dataloader)
+
+        if val_data_dir is None:
+            print(f'\t- Epoch: {epoch+1} - loss: {train_loss:.4f} - acc: {train_acc:.4f}')
         else:
-            print(f'\t- Epoch: {epoch+1}', end=' ')
-            print(f'- loss: {train_loss:.4f} - acc: {train_acc:.4f}')
+            model.eval()
+            val_loss = 0
+            val_acc = 0
+            with torch.no_grad():
+                for images, labels in val_dataloader:
+                    images = images.to(device)
+                    labels = labels.to(device)
+                    
+                    logits = model(images)
+                    loss = criterion(logits, labels)
+
+                    val_loss += loss.item()
+                    val_acc += (torch.sum(torch.argmax(logits, dim=1) == labels) / len(labels)).item()
+
+            val_loss /= len(val_dataloader)
+            val_acc /= len(val_dataloader)
+
+            print(f'\t- Epoch: {epoch+1} - loss: {train_loss:.4f} - acc: {train_acc:.4f} - val_loss: {val_loss:.4f} - val_acc: {val_acc:.4f}')
+
     print()
     
     save_entire_model(model, 'last')
     
     
-def main(opt):
-    if DATA_CONFIG.get('download', False):
-        download_dataset()
-
-    train(opt)
-    
-    
-def parse_opt():
+def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--epochs', type=int, default=3)
     parser.add_argument('--learning-rate', '--lr', type=float, default=1e-4)
@@ -109,9 +127,13 @@ def parse_opt():
     parser.add_argument('--num-workers', type=int, default=-1)
     parser.add_argument('--device', type=str, default=None)
     
-    return parser.parse_known_args()[0]
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
+    train(args)
 
 
 if __name__ == '__main__':
-    opt = parse_opt()
-    main(opt)
+    main()

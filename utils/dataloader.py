@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
 
-def create_dataloaders(dir, image_size, batch_size, num_workers):
+def create_dataloader(dir, image_size, batch_size, num_workers):
     transform = transforms.Compose([
         transforms.Resize((image_size[0], image_size[1])),
         transforms.ToTensor()
@@ -25,5 +25,5 @@ def create_dataloaders(dir, image_size, batch_size, num_workers):
 
 
 if __name__ == '__main__':
-    dataloader, dataset = create_dataloaders('data/train', 224, 8, os.cpu_count())
+    dataloader, dataset = create_dataloader('data/train', 224, 8, os.cpu_count())
     print(dataloader, dataset)
