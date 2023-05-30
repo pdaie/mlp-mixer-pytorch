@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 
+from embedding import PatchEmbedding
+
 
 class MixerBlock(nn.Module):
     def __init__(
