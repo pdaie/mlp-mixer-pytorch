@@ -4,9 +4,10 @@ import argparse
 import torch
 import torch.nn as nn
 
-from model.mlp_mixer import MLPMixer
+from model import MLPMixer
 from utils.dataloader import create_dataloader
 from utils.save_model import save_entire_model
+
 
 def train(args):
     if args.device == None:
