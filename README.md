@@ -18,10 +18,50 @@ pip install -r requirements.txt  # install requirements
 
 </details>
 
-<details>
-<summary>Inference</summary>
+<details open>
+<summary>Training</summary>
 
-After training model, the parameters will be save on runs/exp_*/last.pt. We can load it for inference.
+Data structure:
+```
+mlp-mixer-pytorch
+├── data/
+│   ├── train/
+│   │   ├── class_a/
+│   │   │   ├── a_image_1.jpg
+│   │   │   ├── a_image_2.jpg
+│   │   │   └── a_image_3.jpg
+│   │   ├── class_b/
+│   │   │   ├── b_image_1.jpg
+│   │   │   ├── b_image_2.jpg
+│   │   │   └── b_image_3.jpg
+│   │   └── class_c/
+│   │       ├── c_image_1.jpg
+│   │       ├── c_image_2.jpg
+│   │       └── c_image_3.jpg
+│   └── valid/
+│       ├── class_a/
+│       │   ├── a_image_1.jpg
+│       │   ├── a_image_2.jpg
+│       │   └── a_image_3.jpg
+│       ├── class_b/
+│       │   ├── b_image_1.jpg
+│       │   ├── b_image_2.jpg
+│       │   └── b_image_3.jpg
+│       └── class_c/
+│           ├── c_image_1.jpg
+│           ├── c_image_2.jpg
+│           └── c_image_3.jpg
+└── train.py
+```
+
+```bash
+python train.py --epochs 300 --learning-rate 1e3 --batch-size 128 --image-size 300 --patch-size 100 --num-mlp-blocks 8 --projection-dim 512 --token-mixing-dim 2048 --channel-mixing-dim 256 --num-workers 1 --device cuda:0                                                      
+```
+
+</details>
+
+<details open>
+<summary>Inference</summary>
 
 ```python
 import torch
@@ -59,44 +99,6 @@ logis = model(image.unsqueeze(0))
 
 # Results
 results = logis.argmax(dim=1)
-```
-
-</details>   
-   
-<details>
-<summary>Training</summary>
-
-You have to setup your data follow structure below:
-
-```
-data/
-...train/
-......class_a/
-.........a_image_1.jpg
-.........a_image_2.jpg
-......class_b/
-.........b_image_1.jpg
-.........b_image_2.jpg
-......class_c/
-.........c_image_1.jpg
-.........c_image_2.jpg
-...val/
-......class_a/
-.........a_image_1.jpg
-.........a_image_2.jpg
-......class_b/
-.........b_image_1.jpg
-.........b_image_2.jpg
-......class_c/
-.........c_image_1.jpg
-.........c_image_2.jpg
-model/
-utils/
-train.py
-```
-
-```bash
-python train.py --epochs 300 --learning-rate 1e3 --batch-size 128 --image-size 300 --patch-size 100 --num-mlp-blocks 8 --projection-dim 512 --token-mixing-dim 2048 --channel-mixing-dim 256 --num-workers 1 --device cuda:0                                                      
 ```
 
 </details>
