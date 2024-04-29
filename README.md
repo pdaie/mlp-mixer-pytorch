@@ -11,7 +11,6 @@ This repo focus implement the paper with Pytorch [MLP-Mixer: An all-MLP Architec
 <summary>Install</summary>
 
 ```bash
-git clone https://github.com/pdaie/mlp-mixer-pytorch  # clone
 cd mlp-mixer-pytorch
 pip install -r requirements.txt  # install requirements
 ```
